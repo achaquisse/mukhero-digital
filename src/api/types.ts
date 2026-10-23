@@ -51,6 +51,8 @@ export interface Api {
   createLot(orgId: string, lot: LotInput): Promise<string>;
   updateLot(lotId: string, lot: LotInput): Promise<void>;
   advanceLot(lotId: string): Promise<void>;
+  /** Admin-only quantity correction, allowed in any lot status. */
+  setLotQty(lotId: string, qty: number): Promise<void>;
 
   createProduct(orgId: string, p: ProductInput): Promise<string>;
   updateProduct(productId: string, p: ProductEdit): Promise<void>;

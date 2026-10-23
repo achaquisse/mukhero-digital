@@ -729,6 +729,7 @@ export type Database = {
         Returns: string;
       };
       request_join: { Args: { p_code: string }; Returns: string };
+      set_lot_qty: { Args: { p_lot: string; p_qty: number }; Returns: undefined };
       set_price: { Args: { p_price: number; p_product: string }; Returns: undefined };
       update_lot: {
         Args: {

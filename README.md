@@ -117,6 +117,16 @@ npm run dev:demo                    # app against an in-memory backend, no Supab
 
 In development the sign-in page also offers email + password sign-in.
 
+**Cloud migrations:** apply pending migrations from `supabase/migrations/` to the hosted project with the
+Supabase CLI (prompts for the database password):
+
+```bash
+npx supabase login                                   # once per machine
+npx supabase link --project-ref <project-ref>        # once per checkout
+npx supabase db push --dry-run                       # list migrations that would be applied
+npx supabase db push                                 # apply them to the cloud database
+```
+
 **Google sign-in:** create an OAuth client in Google Cloud (redirect URI
 `http://127.0.0.1:54321/auth/v1/callback` locally), put `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` and
 `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` in `supabase/.env`, and set `enabled = true` under

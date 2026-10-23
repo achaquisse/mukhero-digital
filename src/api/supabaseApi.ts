@@ -264,6 +264,9 @@ export const supabaseApi: Api = {
   async advanceLot(lotId) {
     ok(await supabase.rpc('advance_lot', { p_lot: lotId }));
   },
+  async setLotQty(lotId, qty) {
+    ok(await supabase.rpc('set_lot_qty', { p_lot: lotId, p_qty: qty }));
+  },
 
   async createProduct(orgId, p) {
     return ok(

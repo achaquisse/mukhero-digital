@@ -125,6 +125,20 @@ describe('lots', () => {
     const db = M.advanceLot(makeDb(), 'B', 'recebido', TODAY);
     expect(db.lots[1]!.arrivalDate).toBe(TODAY);
   });
+
+  it('corrects the quantity of received lots, never below sold + lost', () => {
+    const db = makeDb({
+      lots: makeDb().lots.map((l) => (l.id === 'A' ? { ...l, lost: 1 } : l)),
+      sales: [sale({ id: 's1', productId: 'p1', lotId: 'A', qty: 3 })],
+    });
+    expect(M.minLotQty(db, 'A')).toBe(4);
+    expect(M.setLotQty(db, 'A', 3)).toEqual({ ok: false, error: 'A quantidade não pode ser inferior a 4 (vendidos e perdidos)' });
+    expect(M.setLotQty(db, 'A', 2.5)).toEqual({ ok: false, error: 'Quantidade inválida' });
+    const shrunk = unwrap(M.setLotQty(db, 'A', 4));
+    expect(shrunk.lots[0]).toMatchObject({ qty: 4, status: 'esgotado' });
+    const grown = unwrap(M.setLotQty(shrunk, 'A', 8));
+    expect(grown.lots[0]).toMatchObject({ qty: 8, status: 'recebido' });
+  });
 });
 
 describe('products', () => {

@@ -207,6 +207,22 @@ export function advanceLot(db: OrgData, lotId: string, to: LotStatus, today: str
   };
 }
 
+/** Smallest quantity a lot can be corrected to: what was already sold or lost. */
+export function minLotQty(db: OrgData, lotId: string): number {
+  const L = db.lots.find((x) => x.id === lotId);
+  const sold = db.sales.reduce((n, s) => (s.lotId === lotId ? n + s.qty : n), 0);
+  return Math.max(1, sold + (L?.lost ?? 0));
+}
+
+export function setLotQty(db: OrgData, lotId: string, qty: number): Result {
+  const L = db.lots.find((x) => x.id === lotId);
+  if (!L) return fail('Lote não encontrado');
+  if (!Number.isInteger(qty) || qty < 1) return fail('Quantidade inválida');
+  const min = minLotQty(db, lotId);
+  if (qty < min) return fail(`A quantidade não pode ser inferior a ${min} (vendidos e perdidos)`);
+  return ok(syncLotStatus({ ...db, lots: db.lots.map((x) => (x.id === lotId ? { ...x, qty } : x)) }));
+}
+
 /** Recover the form values that produced a lot's cost lines. */
 export function lotToInput(L: Lot, fx: number): LotInput {
   const get = (label: string) => L.costs.find((c) => c.label === label)?.value ?? 0;

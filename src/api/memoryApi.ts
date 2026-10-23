@@ -219,6 +219,12 @@ export function createMemoryApi(state: MemoryState = demoState(), opts: { latenc
       if (!to) throw new Error('O lote já foi recebido');
       apply(orgId, (d) => M.advanceLot(d, lotId, to, todayISO()));
     },
+    async setLotQty(lotId, qty) {
+      apply(
+        orgOf((d) => d.lots.some((l) => l.id === lotId)),
+        (d) => M.setLotQty(d, lotId, qty),
+      );
+    },
 
     async createProduct(orgId, p) {
       if (p.sku && M.skuTakenIn(state.db[orgId]!)(p.sku)) throw new Error('Já existe um produto com este código');
