@@ -8,7 +8,7 @@ import { ChipGroup } from '../../components/ui/Segmented';
 import { COLORS, LOT_STATUS } from '../../domain/constants';
 import { sum, type ProductView } from '../../domain/derive';
 import { addMonths, dayLabelYear, fmt, monthShort, sfmt, todayISO } from '../../domain/format';
-import { makePriceSchema, makeProductEditSchema } from '../../domain/schemas';
+import { makeProductEditSchema } from '../../domain/schemas';
 import { useAction, useOrgData } from '../../hooks/useOrg';
 import { useEntrance } from '../../hooks/useEntrance';
 import { toast, useUi } from '../../store/uiStore';
@@ -54,7 +54,7 @@ export function ProductDetail({ productId }: { productId: string }) {
       'Lucro bruto / un.',
       p.hasCost ? `${sfmt(p.gpU)} ${cur}` : '—',
       marginColor,
-      `margem atual ${p.hasCost ? `${Math.round(p.marginP)}%` : '—'} · padrão ${defMargin}%`,
+      `margem actual ${p.hasCost ? `${Math.round(p.marginP)}%` : '—'} · padrão ${defMargin}%`,
     ],
     ['Unidades vendidas', fmt(units), COLORS.ink, `${p.u90} nos últimos 90 dias`],
     ['Receita total', `${fmt(rev)} ${cur}`, COLORS.ink, `preço médio ${fmt(units ? rev / units : 0)}`],
@@ -80,7 +80,7 @@ export function ProductDetail({ productId }: { productId: string }) {
         </div>
         <div className="flex flex-col items-end">
           <span className="text-[22px] font-semibold tracking-[-0.03em]">{fmt(p.price)}</span>
-          <span className="text-[11px] text-muted">{cur} · preço atual</span>
+          <span className="text-[11px] text-muted">{cur} · preço actual</span>
         </div>
       </div>
 
@@ -193,8 +193,6 @@ export function ProductDetail({ productId }: { productId: string }) {
         </div>
       )}
 
-      <PriceForm p={p} />
-
       <div className="flex flex-col gap-1.5">
         <span className="text-[13px] font-medium text-muted">Histórico de preços</span>
         <ol className="m-0 flex list-none flex-col rounded-xl bg-surface px-1.5 py-1">
@@ -228,7 +226,7 @@ export function ProductDetail({ productId }: { productId: string }) {
                     color={isCur ? COLORS.brand : COLORS.muted}
                     className="px-2! text-[11px]! font-semibold!"
                   >
-                    {isCur ? 'Atual' : 'Anterior'}
+                    {isCur ? 'Actual' : 'Anterior'}
                   </Badge>
                 </li>
               );
@@ -266,29 +264,51 @@ export function ProductDetail({ productId }: { productId: string }) {
 function ProductEditForm({ p, onDone }: { p: ProductView; onDone: () => void }) {
   const { db } = useOrgData();
   const { run } = useAction();
-  const schema = useMemo(() => makeProductEditSchema({ skuTaken: skuTakenIn(db, p.id) }), [db, p.id]);
+  const cur = db.settings.currency;
+  const schema = useMemo(
+    () => makeProductEditSchema({ skuTaken: skuTakenIn(db, p.id), currentPrice: p.price }),
+    [db, p.id, p.price],
+  );
   const { register, control, handleSubmit, formState } = useZodForm(schema, {
     defaultValues: {
       name: p.name,
       sku: p.sku,
       typeId: p.typeId,
+      price: String(p.price),
       minStock: String(p.minStock),
       margin: String(p.margin ?? db.settings.margin),
     },
   });
   const errors = formState.errors;
+  const np = Number((useWatch({ control, name: 'price' }) ?? '').replace(',', '.')) || 0;
+  const priceHint =
+    np > 0 && np !== p.price && p.hasCost
+      ? `Novo lucro bruto / un.: ${sfmt(np - p.unitCost)} ${cur} · margem ${Math.round(((np - p.unitCost) / np) * 100)}%`
+      : 'Alterar o preço cria uma nova entrada no histórico · vendas anteriores mantêm o seu preço.';
   return (
     <form
       noValidate
       aria-label="Editar produto"
       className="flex flex-col gap-3 rounded-xl border border-card-line p-3.5"
-      onSubmit={handleSubmit(async (v) => {
-        if ((await run((api) => api.updateProduct(p.id, v), 'Produto atualizado')).ok) onDone();
+      onSubmit={handleSubmit(async ({ price, ...v }) => {
+        const priceChanged = price !== p.price;
+        const res = await run(
+          async (api) => {
+            await api.updateProduct(p.id, v);
+            if (priceChanged) await api.setPrice(p.id, price);
+          },
+          priceChanged ? `Produto actualizado · preço ${fmt(price)} ${cur}` : 'Produto actualizado',
+        );
+        if (res.ok) onDone();
       })}
     >
       <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-2.5">
         <TextField label="Nome" {...register('name')} error={errors.name?.message} />
         <TextField label="Código" {...register('sku')} error={errors.sku?.message} />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <NumberField label={`Preço de venda (${cur})`} {...register('price')} error={errors.price?.message} />
+        <span className="text-xs text-muted">{priceHint}</span>
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-[13px] font-medium text-muted">Tipo</span>
@@ -316,56 +336,6 @@ function ProductEditForm({ p, onDone }: { p: ProductView; onDone: () => void }) 
           Guardar
         </Button>
       </div>
-    </form>
-  );
-}
-
-function PriceForm({ p }: { p: ProductView }) {
-  const { db } = useOrgData();
-  const { run } = useAction();
-  const cur = db.settings.currency;
-  const schema = useMemo(() => makePriceSchema(p.price), [p.price]);
-  const { register, control, handleSubmit, reset, formState } = useZodForm(schema, {
-    mode: 'onSubmit',
-    defaultValues: { price: '' },
-  });
-  const np = Number(useWatch({ control, name: 'price' }).replace(',', '.')) || 0;
-  const preview =
-    np > 0 && p.hasCost
-      ? `Novo lucro bruto / un.: ${sfmt(np - p.unitCost)} ${cur} · margem ${Math.round(((np - p.unitCost) / np) * 100)}%`
-      : 'Cria uma nova entrada no histórico · vendas anteriores mantêm o seu preço.';
-
-  return (
-    <form
-      noValidate
-      aria-label="Alterar preço de venda"
-      className="flex flex-col gap-1.5"
-      onSubmit={handleSubmit(async ({ price }) => {
-        if ((await run((api) => api.setPrice(p.id, price), `Preço atualizado para ${fmt(price)}`)).ok) reset({ price: '' });
-      })}
-    >
-      <label htmlFor="new-price" className="text-[13px] font-medium text-muted">
-        Alterar preço de venda ({cur})
-      </label>
-      <div className="flex gap-2">
-        <input
-          id="new-price"
-          inputMode="decimal"
-          autoComplete="off"
-          placeholder={String(p.price)}
-          aria-invalid={!!formState.errors.price}
-          aria-describedby="new-price-hint"
-          {...register('price')}
-          className="field flex-1 text-[15px]!"
-        />
-        <Button type="submit" variant="primary" size="md" className="px-4!" disabled={!(np > 0) || np === p.price}>
-          Atualizar
-        </Button>
-      </div>
-      <FieldError message={formState.errors.price?.message} />
-      <span id="new-price-hint" className="text-xs text-muted">
-        {preview}
-      </span>
     </form>
   );
 }

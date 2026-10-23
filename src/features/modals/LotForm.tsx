@@ -80,7 +80,7 @@ export function LotForm({ productId, editId }: { productId?: string; editId?: st
 
   const onSubmit = handleSubmit(async (val) => {
     if (editId) {
-      if ((await run((api) => api.updateLot(editId, val), 'Lote atualizado')).ok) openModal({ kind: 'lotDetail', lotId: editId });
+      if ((await run((api) => api.updateLot(editId, val), 'Lote actualizado')).ok) openModal({ kind: 'lotDetail', lotId: editId });
       return;
     }
     if ((await run((api) => api.createLot(org.id, val), 'Lote criado')).ok) {

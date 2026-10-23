@@ -3,13 +3,12 @@
  * Used by UI tests and by the offline demo mode (VITE_API=memory). It mirrors
  * the server's business rules but does not enforce role permissions.
  */
-import * as seedData from '../data/bestsound-data';
 import { PALETTE } from '../domain/constants';
 import { deriveOrg } from '../domain/derive';
 import { initials, todayISO } from '../domain/format';
 import { uid } from '../domain/id';
 import * as M from '../domain/mutations';
-import { asMember, DEMO_USER, emptyOrgData, seedBestSound, seedCasaLumi } from '../domain/seed';
+import { asMember, DEMO_USER, emptyOrgData } from '../domain/defaults';
 import type { Attachment, IncomingInvite, Org, OrgData, OutgoingRequest, User } from '../domain/types';
 import type { Api } from './types';
 
@@ -24,16 +23,13 @@ export interface MemoryState {
   files: Map<string, Blob>;
 }
 
-export function demoState(today = todayISO()): MemoryState {
+export function demoState(): MemoryState {
   return {
     user: null,
-    orgs: [
-      { id: 'o1', name: 'BestSound', color: '#5B4CF5', joinCode: 'BESTSND1' },
-      { id: 'o2', name: 'Casa Lumi', color: '#F2994A', joinCode: 'CASALUMI' },
-    ],
-    invitesIn: [{ id: 'in1', org: 'Mercado Xipamanine', by: 'Rui Tembe', role: 'Stock' }],
-    requestsOut: [{ id: 'ro1', org: 'Ferragens Sol' }],
-    db: { o1: seedBestSound(seedData, today), o2: seedCasaLumi(today) },
+    orgs: [{ id: 'o1', name: 'Mukhero Digital', color: '#5B4CF5', joinCode: 'MUKHERO1' }],
+    invitesIn: [],
+    requestsOut: [],
+    db: { o1: emptyOrgData(DEMO_USER) },
     files: new Map(),
   };
 }

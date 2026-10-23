@@ -668,7 +668,7 @@ begin
   end if;
   select price into v_current from public.price_history where product_id = p_product order by effective_at desc, id desc limit 1;
   if v_current = p_price then
-    raise exception 'O preço é igual ao atual' using errcode = '22023';
+    raise exception 'O preço é igual ao actual' using errcode = '22023';
   end if;
   insert into public.price_history (org_id, product_id, price, set_by, set_by_name)
   values (v_org, p_product, p_price, (select auth.uid()), private.my_name());

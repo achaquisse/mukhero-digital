@@ -2,7 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { renderApp } from '../test/renderApp';
 import { useUi } from '../store/uiStore';
-import { DEMO_USER } from '../domain/seed';
+import { DEMO_USER } from '../domain/defaults';
 
 const dialog = () => screen.getByRole('dialog', { hidden: false });
 
@@ -12,7 +12,7 @@ describe('routing & auth', () => {
     await user.click(await screen.findByRole('button', { name: 'Continuar com Google' }));
     expect(await screen.findByRole('heading', { name: 'Olá, Carlos' })).toBeInTheDocument();
 
-    await user.click(await screen.findByRole('button', { name: /BestSound/ }));
+    await user.click(await screen.findByRole('button', { name: /Mukhero Digital/ }));
     expect(await screen.findByRole('heading', { name: 'Atenção' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Painel' })).toHaveAttribute('aria-current', 'page');
   });
@@ -108,7 +108,7 @@ describe('stock', () => {
 
     await user.click(form.getByRole('button', { name: 'Criar lote' }));
     await waitFor(() => expect(useUi.getState().modal).toBeNull());
-    expect(db().lots.at(-1)).toMatchObject({ code: 'ALM-L10', qty: 10, status: 'encomendado' });
+    expect(db().lots.at(-1)).toMatchObject({ code: 'ALM-L3', qty: 10, status: 'encomendado' });
   });
 
   it('rejects a duplicate product code', async () => {
@@ -135,15 +135,15 @@ describe('settings', () => {
     expect(await form.findByText('Formato de email inválido')).toBeInTheDocument();
 
     await user.clear(email);
-    await user.type(email, 'ana@bestsound.co.mz');
+    await user.type(email, 'ana@mukhero-digital.co.mz');
     await user.click(form.getByRole('button', { name: 'Enviar convite' }));
     expect(await form.findByText('Esta pessoa já é membro da organização')).toBeInTheDocument();
 
     await user.clear(email);
-    await user.type(email, 'nova@bestsound.co.mz');
+    await user.type(email, 'nova@mukhero-digital.co.mz');
     await user.click(form.getByRole('radio', { name: 'Stock' }));
     await user.click(form.getByRole('button', { name: 'Enviar convite' }));
-    await waitFor(() => expect(db().invites.at(-1)).toMatchObject({ email: 'nova@bestsound.co.mz', role: 'Stock' }));
+    await waitFor(() => expect(db().invites.at(-1)).toMatchObject({ email: 'nova@mukhero-digital.co.mz', role: 'Stock' }));
   });
 
   it('refuses to demote the last admin', async () => {

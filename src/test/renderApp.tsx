@@ -5,12 +5,34 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 import { createMemoryApi, demoState, type MemoryApi, type MemoryState } from '../api/memoryApi';
 import { AppProviders } from '../app/AppProviders';
 import { routes } from '../app/routes';
-import { DEMO_USER } from '../domain/seed';
+import { asMember, DEMO_USER } from '../domain/defaults';
+import { todayISO } from '../domain/format';
 import { useFilters } from '../store/filtersStore';
 import { useSession } from '../store/sessionStore';
 import { useUi } from '../store/uiStore';
+import { makeDb, product, sale } from './fixtures';
 
-const base = demoState();
+const base: MemoryState = {
+  ...demoState(),
+  db: {
+    o1: makeDb({
+      products: [
+        product({
+          id: 'p1',
+          name: 'Alarme',
+          sku: 'ALM-01',
+          price: 1500,
+          priceHistory: [{ price: 1500, from: '2026-01-01', by: DEMO_USER.name }],
+        }),
+      ],
+      sales: [sale({ id: 's1', productId: 'p1', lotId: 'A', price: 1500, date: todayISO(), soldBy: DEMO_USER.name })],
+      members: [
+        asMember(DEMO_USER, 'Admin'),
+        { userId: 'u-ana', name: 'Ana Sitoe', email: 'ana@mukhero-digital.co.mz', initials: 'AS', role: 'Vendas' },
+      ],
+    }),
+  },
+};
 
 interface Options {
   signedIn?: boolean;

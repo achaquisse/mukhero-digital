@@ -102,7 +102,7 @@ describe('product schemas', () => {
 
   it('requires a different, positive price change', () => {
     const price = makePriceSchema(1500);
-    expect(messages(price.safeParse({ price: '1500' }))).toEqual({ price: 'O preço é igual ao atual' });
+    expect(messages(price.safeParse({ price: '1500' }))).toEqual({ price: 'O preço é igual ao actual' });
     expect(messages(price.safeParse({ price: '0' }))).toEqual({ price: 'Tem de ser maior que zero' });
     expect(price.parse({ price: '1600' }).price).toBe(1600);
   });

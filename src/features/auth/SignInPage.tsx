@@ -6,7 +6,7 @@ import { Logo } from '../../components/ui/Display';
 import { TextField } from '../../components/ui/Field';
 import { useZodForm } from '../modals/useZodForm';
 
-/** Email + password sign-in is only offered in development (seeded demo users). */
+/** Email + password sign-in is only offered in development. */
 const SHOW_DEV_LOGIN = import.meta.env.DEV;
 
 const devLoginSchema = z.object({
@@ -79,7 +79,7 @@ function DevLogin() {
   const api = useApi();
   const [error, setError] = useState<string | null>(null);
   const { register, handleSubmit, formState } = useZodForm(devLoginSchema, {
-    defaultValues: { email: 'carlos@bestsound.co.mz', password: '' },
+    defaultValues: { email: '', password: '' },
   });
   return (
     <form

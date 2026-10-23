@@ -123,14 +123,16 @@ export const makeProductSchema = (opts: { skuTaken: (sku: string) => boolean }) 
     margin: numberField({ min: 0, max: 1000 }),
   });
 
-export const makeProductEditSchema = (opts: { skuTaken: (sku: string) => boolean }) =>
-  makeProductSchema(opts).omit({ price: true });
+export const makeProductEditSchema = (opts: { skuTaken: (sku: string) => boolean; currentPrice: number }) =>
+  makeProductSchema(opts).extend({
+    price: numberField({ min: 0, max: 1e10 }).refine((p) => p > 0 || p === opts.currentPrice, 'Tem de ser maior que zero'),
+  });
 
 export const makePriceSchema = (current: number) =>
   z.object({
     price: numberField({ positive: true, required: 'Indique o novo preço', max: 1e10 }).refine(
       (p) => p !== current,
-      'O preço é igual ao atual',
+      'O preço é igual ao actual',
     ),
   });
 

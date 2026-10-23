@@ -36,8 +36,8 @@ export function ProductForm() {
       })}
     >
       <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-3">
-        <TextField label="Nome" placeholder="Ex.: Alarme auto" {...register('name')} error={errors.name?.message} />
-        <TextField label="Código" placeholder="ALM-02" {...register('sku')} error={errors.sku?.message} />
+        <TextField label="Nome" {...register('name')} error={errors.name?.message} />
+        <TextField label="Código" {...register('sku')} error={errors.sku?.message} />
       </div>
       <div className="flex flex-col gap-2">
         <span className="text-[13px] font-medium text-muted">Tipo</span>

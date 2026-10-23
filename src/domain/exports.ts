@@ -12,7 +12,7 @@ export const EXPORT_LABELS: Record<ExportKind, string> = {
   vendas: 'Vendas',
   despesas: 'Despesas',
   lotes: 'Lotes',
-  stock: 'Stock atual',
+  stock: 'Stock actual',
   tudo: 'Livro completo',
 };
 

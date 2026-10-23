@@ -173,7 +173,7 @@ function ExportMenu() {
     ['vendas', 'Vendas', `${analytics.sales.length} vendas`, 'point_of_sale'],
     ['despesas', 'Despesas', `${analytics.expenses.length} registos + resumo por categoria`, 'receipt_long'],
     ['lotes', 'Lotes', `${analytics.lots.length} lotes com custos e lucro`, 'local_shipping'],
-    ['stock', 'Stock atual', 'Quantidades e valorização', 'inventory_2'],
+    ['stock', 'Stock actual', 'Quantidades e valorização', 'inventory_2'],
     ['tudo', 'Livro completo', 'Todas as folhas num ficheiro', 'table_view'],
   ] as const;
   return (

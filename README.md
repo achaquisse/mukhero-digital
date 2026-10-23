@@ -23,7 +23,7 @@ React Hook Form + Zod 4 · Tailwind CSS 4 · Vitest 5 + Testing Library · oxlin
 ```
 src/
   domain/      Pure business logic, no React: types, derivations (landed cost, FIFO stock),
-               analytics (ranges, buckets), mutations, Zod schemas, Excel export, seeds
+               analytics (ranges, buckets), mutations, Zod schemas, Excel export, defaults
   store/       Zustand: appStore (persisted to localStorage "lote.app.v4"), uiStore, filtersStore
   hooks/       OrgDataProvider (derived data computed once), useMutate, useEntrance, useMediaQuery
   components/  UI kit (Button, Field, Combobox, Menu, Segmented…), DataTable, overlays (Sheet, Confirm, Toast, Preview)
@@ -39,16 +39,14 @@ schema parse/validate them, so errors are specific ("Indique o valor", "Stock in
 
 ```bash
 cp .env.example .env.local          # then paste the anon key printed below
-npm run db:start                    # local Supabase in Docker (applies migrations + seed)
+npm run db:start                    # local Supabase in Docker (applies migrations)
 npm run db:types                    # regenerate src/lib/database.types.ts from the schema
 npm run db:test                     # pgTAP tests: RLS, roles, FIFO sales, invites
 npm run dev                         # app against local Supabase
-npm run dev:demo                    # app against in-memory demo data, no backend needed
+npm run dev:demo                    # app against an in-memory backend, no Supabase needed
 ```
 
-In development the sign-in page also offers email + password for the seeded demo users
-(`carlos@bestsound.co.mz`, `ana@…`, `rui@…`, `lucia@casalumi.co.mz`; password `mukhero-demo`).
-Regenerate the seed with `npm run db:seed:generate`.
+In development the sign-in page also offers email + password sign-in.
 
 **Google sign-in:** create an OAuth client in Google Cloud (redirect URI
 `http://127.0.0.1:54321/auth/v1/callback` locally), put `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` and
@@ -68,11 +66,3 @@ Regenerate the seed with `npm run db:seed:generate`.
   with short-lived signed URLs.
 - Client: `src/api/types.ts` defines the `Api` contract; `supabaseApi` implements it, `memoryApi`
   implements it in memory (used by UI tests and `dev:demo`). TanStack Query caches server state.
-
-## Notes
-
-- Demo data: _BestSound_ is imported from the original accounting spreadsheet; _Casa Lumi_ is synthetic.
-
-## Local run
-run npm run dev and sign in with a demo user (password mukhero-demo). Google sign-in still needs the OAuth client set up as described in the README.
-API at http://127.0.0.1:54321, Studio at http://127.0.0.1:54323, Mailpit at http://127.0.0.1:54324

@@ -4,11 +4,12 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import type { Api } from './api/types';
 import { AppProviders } from './app/AppProviders';
 import { routes } from './app/routes';
+import { env } from './lib/env';
 import './index.css';
 
-/** VITE_API=memory runs the app offline against seeded in-memory data. */
+/** VITE_API=memory runs the app offline against in-memory data. */
 async function loadApi(): Promise<Api> {
-  if (import.meta.env.VITE_API === 'memory') {
+  if (env.VITE_API === 'memory') {
     const { createMemoryApi } = await import('./api/memoryApi');
     return createMemoryApi(undefined, { latencyMs: 150 });
   }
