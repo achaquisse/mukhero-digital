@@ -1,0 +1,133 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --color-ink: #111418;
+  --color-muted: #6b7280;
+  --color-subtle: #9aa1ac;
+  --color-brand: #5b4cf5;
+  --color-brand-dark: #4a3be0;
+  --color-brand-soft: #efedff;
+  --color-brand-tint: #f1efff;
+  --color-surface: #f8f7ff;
+  --color-surface-2: #fbfaff;
+  --color-hover: #f5f6f8;
+  --color-line: #e1e4ea;
+  --color-line-strong: #cbd2dc;
+  --color-card-line: #e9eaf2;
+  --color-divider: #eef0f3;
+  --color-chip: #f2f4f7;
+  --color-success: #15803d;
+  --color-success-soft: #ecfdf3;
+  --color-danger: #b42318;
+  --color-danger-strong: #d92d20;
+  --color-danger-soft: #fef3f2;
+  --color-danger-line: #fee4e2;
+  --color-warning: #b45309;
+  --color-warning-soft: #fff4e5;
+
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 20px rgba(91, 76, 245, 0.05);
+  --shadow-pop: 0 12px 32px rgba(16, 24, 40, 0.12);
+  --shadow-seg: 0 1px 2px rgba(16, 24, 40, 0.1);
+
+  --animate-spin-fast: spin 0.8s linear infinite;
+
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    margin: 0;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'tnum';
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(1200px 420px at 15% -10%, #e9e5ff 0, rgba(233, 229, 255, 0) 70%),
+      radial-gradient(900px 380px at 95% -5%, #ddf4ff 0, rgba(221, 244, 255, 0) 65%), #f6f7fb;
+    min-height: 100vh;
+  }
+  input,
+  button,
+  textarea,
+  select {
+    font: inherit;
+  }
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility icon {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
+  user-select: none;
+}
+
+@utility card {
+  background: #fff;
+  border: 1px solid var(--color-card-line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+@utility brand-gradient {
+  background: linear-gradient(135deg, #7c6cff, #5b4cf5);
+}
+
+@utility logo-gradient {
+  background: linear-gradient(135deg, #8b5cf6, #5b4cf5 55%, #22b8f0);
+}
+
+@utility avatar-gradient {
+  background: linear-gradient(135deg, #ffd9c7, #e3dbff);
+}
+
+@utility field {
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--color-ink);
+  min-width: 0;
+  transition: border-color 0.15s;
+  &:focus {
+    border-color: var(--color-brand);
+  }
+  &[aria-invalid='true'] {
+    border-color: #f04438;
+  }
+}
