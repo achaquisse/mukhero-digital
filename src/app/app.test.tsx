@@ -7,12 +7,9 @@ import { DEMO_USER } from '../domain/defaults';
 const dialog = () => screen.getByRole('dialog', { hidden: false });
 
 describe('routing & auth', () => {
-  it('redirects guests to sign-in and signs in to the organisation picker', async () => {
+  it('redirects guests to sign-in and enters the only organisation directly', async () => {
     const { user } = renderApp('/painel', { signedIn: false, orgId: null });
     await user.click(await screen.findByRole('button', { name: 'Continuar com Google' }));
-    expect(await screen.findByRole('heading', { name: 'Olá, Carlos' })).toBeInTheDocument();
-
-    await user.click(await screen.findByRole('button', { name: /Mukhero Digital/ }));
     expect(await screen.findByRole('heading', { name: 'Atenção' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Painel' })).toHaveAttribute('aria-current', 'page');
   });

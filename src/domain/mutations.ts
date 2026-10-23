@@ -8,6 +8,7 @@ import type { Attachment, Cost, Currency, Expense, JoinRequest, Lot, LotStatus, 
 export type Result = { ok: true; db: OrgData } | { ok: false; error: string };
 
 export interface Actor {
+  id?: string;
   name: string;
   /** ISO datetime */
   now: string;
@@ -62,6 +63,7 @@ export function recordSale(db: OrgData, d: Derived, input: SaleInput, actor: Act
     customer: input.customer.trim(),
     soldAt: actor.now,
     soldBy: actor.name,
+    soldById: actor.id,
   };
   const rows: Sale[] = [];
   if (p.service) {
@@ -96,6 +98,7 @@ export function addExpense(db: OrgData, input: ExpenseInput, actor: Actor): OrgD
     note: input.note.trim(),
     createdAt: actor.now,
     createdBy: actor.name,
+    createdById: actor.id,
   };
   return { ...db, expenses: [...db.expenses, x] };
 }

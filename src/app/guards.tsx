@@ -4,7 +4,7 @@ import { Spinner } from '../components/ui/Spinner';
 import { useAuth } from '../features/auth/authContext';
 import { useSession } from '../store/sessionStore';
 import { GlobalOverlays } from './GlobalOverlays';
-import { PATHS } from './paths';
+import { ORGS_AFTER_SIGN_IN, PATHS } from './paths';
 
 export function RequireUser() {
   const { user } = useAuth();
@@ -23,7 +23,7 @@ export function RequireOrg() {
 export function GuestOnly() {
   const { user } = useAuth();
   if (user === undefined) return <Spinner />;
-  return user ? <Navigate to={PATHS.orgs} replace /> : <Outlet />;
+  return user ? <Navigate to={ORGS_AFTER_SIGN_IN} replace /> : <Outlet />;
 }
 
 export function Root() {

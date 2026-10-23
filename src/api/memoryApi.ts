@@ -45,7 +45,7 @@ export function createMemoryApi(state: MemoryState = demoState(), opts: { latenc
     if (!state.user) throw new Error('Sessão inválida');
     return state.user;
   };
-  const actor = (): M.Actor => ({ name: me().name, now: new Date().toISOString(), today: todayISO() });
+  const actor = (): M.Actor => ({ id: me().id, name: me().name, now: new Date().toISOString(), today: todayISO() });
 
   const orgOf = (pred: (d: OrgData) => boolean): string => {
     const id = Object.keys(state.db).find((k) => pred(state.db[k]!));

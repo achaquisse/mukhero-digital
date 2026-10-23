@@ -15,6 +15,7 @@ export const asMember = (u: User, role: Role): Member => ({
   name: u.name,
   email: u.email,
   initials: u.initials,
+  avatarUrl: u.avatarUrl,
   role,
 });
 

@@ -3,7 +3,7 @@ import { syncLotStatus } from '../domain/mutations';
 import type { Attachment, Org, OrgData, Role } from '../domain/types';
 import type { Tables } from '../lib/database.types';
 
-type WithProfile<T> = T & { profiles: { name: string; email: string } | null };
+type WithProfile<T> = T & { profiles: { name: string; email: string; avatar_url?: string | null } | null };
 
 export interface OrgRows {
   org: Tables<'orgs'>;
@@ -109,6 +109,7 @@ export function toOrgData(r: OrgRows): OrgData {
       price: Number(s.price),
       customer: s.customer,
       soldBy: s.sold_by_name,
+      soldById: s.sold_by ?? undefined,
       soldAt: s.sold_at,
       files: (saleFiles.get(s.id) ?? []).map(toAttachment),
     })),
@@ -120,11 +121,19 @@ export function toOrgData(r: OrgRows): OrgData {
       note: x.note,
       createdAt: x.created_at,
       createdBy: x.created_by_name,
+      createdById: x.created_by ?? undefined,
       files: (expenseFiles.get(x.id) ?? []).map(toAttachment),
     })),
     members: r.members.map((m) => {
       const name = m.profiles?.name ?? '';
-      return { userId: m.user_id, name, email: m.profiles?.email ?? '', initials: initials(name || '?'), role: m.role };
+      return {
+        userId: m.user_id,
+        name,
+        email: m.profiles?.email ?? '',
+        initials: initials(name || '?'),
+        avatarUrl: m.profiles?.avatar_url ?? undefined,
+        role: m.role,
+      };
     }),
     joinReqs: r.joinRequests.map((j) => ({
       id: j.id,

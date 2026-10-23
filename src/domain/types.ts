@@ -7,6 +7,7 @@ export interface User {
   name: string;
   email: string;
   initials: string;
+  avatarUrl?: string;
 }
 
 export interface Org {
@@ -105,6 +106,7 @@ export interface Sale {
   price: number;
   customer: string;
   soldBy?: string;
+  soldById?: string;
   soldAt?: string;
   files?: Attachment[];
 }
@@ -118,6 +120,7 @@ export interface Expense {
   files?: Attachment[];
   createdAt?: string;
   createdBy?: string;
+  createdById?: string;
 }
 
 export interface Member {
@@ -125,6 +128,7 @@ export interface Member {
   name: string;
   email: string;
   initials: string;
+  avatarUrl?: string;
   role: Role;
 }
 

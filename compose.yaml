@@ -1,0 +1,13 @@
+services:
+  web:
+    image: achaquisse/mukhero-digital:latest
+    pull_policy: always
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    environment:
+      VITE_API: ${VITE_API:-memory}
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-http://127.0.0.1:54321}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-}
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: ${SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID:-}
+      SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: ${SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET:-}
+    restart: unless-stopped

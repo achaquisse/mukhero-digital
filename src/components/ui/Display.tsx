@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { TINTS } from '../../domain/constants';
 import { Icon } from './Icon';
 
@@ -29,7 +29,20 @@ export function Dot({ color, size = 8 }: { color: string; size?: number }) {
   );
 }
 
-export function Avatar({ initials, size = 32 }: { initials: string; size?: number }) {
+export function Avatar({ initials, src, size = 32 }: { initials: string; src?: string; size?: number }) {
+  const [failed, setFailed] = useState<string>();
+  if (src && failed !== src)
+    return (
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        referrerPolicy="no-referrer"
+        className="shrink-0 rounded-full object-cover"
+        style={{ width: size, height: size }}
+        onError={() => setFailed(src)}
+      />
+    );
   return (
     <span
       aria-hidden

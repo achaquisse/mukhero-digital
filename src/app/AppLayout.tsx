@@ -155,7 +155,7 @@ function AccountMenu({ wide }: { wide: boolean }) {
         >
           {wide && <span className="max-w-[140px] truncate text-[13px] font-[550]">{org.name}</span>}
           <span className="relative">
-            <Avatar initials={user.initials} size={32} />
+            <Avatar initials={user.initials} src={user.avatarUrl} size={32} />
             <span
               aria-hidden
               className="absolute -bottom-[3px] -right-[3px] grid size-4 place-items-center rounded-[5px] border-2 border-white text-[9px] font-bold text-white"
@@ -170,7 +170,7 @@ function AccountMenu({ wide }: { wide: boolean }) {
       {(close) => (
         <div role="menu" aria-label="Conta" className="flex flex-col gap-px">
           <div className="flex items-center gap-2.5 p-2.5">
-            <Avatar initials={user.initials} size={36} />
+            <Avatar initials={user.initials} src={user.avatarUrl} size={36} />
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="text-sm font-[550]">{user.name}</span>
               <span className="truncate text-xs text-muted">{user.email}</span>

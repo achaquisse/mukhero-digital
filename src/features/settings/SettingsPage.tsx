@@ -387,7 +387,7 @@ function TeamSection() {
               style={{ gridTemplateColumns: cols }}
             >
               <div role="cell" className="flex min-w-0 items-center gap-2.5 px-3 py-[9px]">
-                <Avatar initials={m.initials} size={28} />
+                <Avatar initials={m.initials} src={m.avatarUrl} size={28} />
                 <span className="truncate">{m.name}</span>
                 {isMe && (
                   <Badge bg="#EFEDFF" color="#5B4CF5" className="px-[7px]! py-0.5! text-[11px]! font-semibold!">

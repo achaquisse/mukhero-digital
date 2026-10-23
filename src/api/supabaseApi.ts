@@ -1,4 +1,5 @@
 import type { PostgrestError, User as AuthUser } from '@supabase/supabase-js';
+import { ORGS_AFTER_SIGN_IN } from '../app/paths';
 import { lotCosts } from '../domain/mutations';
 import { initials } from '../domain/format';
 import type { Role, User } from '../domain/types';
@@ -52,7 +53,8 @@ async function all<T extends Table>(table: T, orgId: string, order = 'id'): Prom
 
 function toUser(u: AuthUser): User {
   const name = (u.user_metadata?.full_name as string) || (u.user_metadata?.name as string) || (u.email ?? '').split('@')[0]!;
-  return { id: u.id, name, email: u.email ?? '', initials: initials(name) };
+  const avatar = (u.user_metadata?.avatar_url as string) || (u.user_metadata?.picture as string) || undefined;
+  return { id: u.id, name, email: u.email ?? '', initials: initials(name), avatarUrl: avatar };
 }
 
 const safeName = (name: string) =>
@@ -81,7 +83,7 @@ export const supabaseApi: Api = {
   async signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/organizacoes` },
+      options: { redirectTo: `${window.location.origin}${ORGS_AFTER_SIGN_IN}` },
     });
     if (error) throw new Error('Não foi possível ligar à Google. Tente novamente.');
   },
@@ -139,7 +141,7 @@ export const supabaseApi: Api = {
         all('attachments', orgId, 'added_at'),
         supabase
           .from('memberships')
-          .select('user_id, role, profiles(name, email)')
+          .select('user_id, role, profiles(name, email, avatar_url)')
           .eq('org_id', orgId)
           .order('created_at')
           .then(ok),

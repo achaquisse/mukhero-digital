@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import type { z } from 'zod';
-import { PATHS } from '../../app/paths';
+import { AUTO_ENTER_PARAM, PATHS } from '../../app/paths';
 import { Button } from '../../components/ui/Button';
 import { Badge, Logo, OrgMark } from '../../components/ui/Display';
 import { FieldError } from '../../components/ui/Field';
@@ -34,10 +34,26 @@ export function OrgsPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const autoEnter = searchParams.has(AUTO_ENTER_PARAM);
+  const soleOrgId = orgsQ.isSuccess && orgs.length === 1 ? orgs[0]!.id : null;
+
   const enter = (id: string) => {
     enterOrg(id);
     navigate(PATHS.painel);
   };
+
+  useEffect(() => {
+    if (!autoEnter || orgsQ.isPending) return;
+    if (soleOrgId) {
+      enterOrg(soleOrgId);
+      navigate(PATHS.painel, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [autoEnter, orgsQ.isPending, soleOrgId, enterOrg, navigate, setSearchParams]);
+
+  if (autoEnter && (orgsQ.isPending || soleOrgId)) return <Spinner />;
 
   return (
     <main className="box-border flex min-h-screen justify-center px-4 py-10">

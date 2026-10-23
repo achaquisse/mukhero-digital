@@ -167,10 +167,12 @@ function AttachmentsSection({
   );
 }
 
-function PersonValue({ name }: { name: string }) {
+function PersonValue({ name, userId }: { name: string; userId?: string }) {
+  const { db } = useOrgData();
+  const avatarUrl = db.members.find((m) => (userId ? m.userId === userId : m.name === name))?.avatarUrl;
   return (
     <span className="flex items-center justify-end gap-2">
-      <Avatar initials={initials(name)} size={24} />
+      <Avatar initials={initials(name)} src={avatarUrl} size={24} />
       {name}
     </span>
   );
@@ -229,7 +231,7 @@ export function SaleDetail({ saleId }: { saleId: string }) {
       />
       <KeyValues
         rows={[
-          { label: 'Vendido por', value: <PersonValue name={who} /> },
+          { label: 'Vendido por', value: <PersonValue name={who} userId={s.soldBy ? s.soldById : db.members[0]?.userId} /> },
           { label: 'Vendido em', value: dateTimeLabel(at) },
         ]}
       />
@@ -274,7 +276,8 @@ export function ExpenseDetail({ expId }: { expId: string }) {
   if (!x) return <Missing />;
   const cur = db.settings.currency;
   const c = db.cats.find((k) => k.id === x.catId) ?? NO_CATEGORY;
-  const admin = (db.members.find((m) => m.role === 'Admin') ?? db.members[0])?.name ?? '—';
+  const adminMember = db.members.find((m) => m.role === 'Admin') ?? db.members[0];
+  const admin = adminMember?.name ?? '—';
   const createdBy = x.createdBy ?? admin;
   const createdAt = x.createdAt ? new Date(x.createdAt) : new Date(`${x.date}T09:00:00`);
 
@@ -308,7 +311,10 @@ export function ExpenseDetail({ expId }: { expId: string }) {
       <KeyValues
         rows={[
           { label: 'Criado em', value: dateTimeLabel(createdAt) },
-          { label: 'Criado por', value: <PersonValue name={createdBy} /> },
+          {
+            label: 'Criado por',
+            value: <PersonValue name={createdBy} userId={x.createdBy ? x.createdById : adminMember?.userId} />,
+          },
         ]}
       />
       <AttachmentsSection
