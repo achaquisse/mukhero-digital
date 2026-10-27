@@ -29,8 +29,8 @@ export function AppLayout() {
 
   return (
     <OrgDataProvider>
-      <div className="relative min-h-screen">
-        <header className="pointer-events-none sticky top-0 z-20 px-3.5 pt-3.5">
+      <div className="relative min-h-dvh">
+        <header className="pointer-events-none sticky top-0 z-20 pl-[max(14px,env(safe-area-inset-left))] pr-[max(14px,env(safe-area-inset-right))] pt-[max(14px,env(safe-area-inset-top))]">
           <div className="pointer-events-auto relative mx-auto box-border flex h-[60px] max-w-[1180px] items-center gap-3 rounded-[22px] border border-white/95 bg-white/70 pl-2.5 pr-2 shadow-[inset_0_1px_0_#fff,0_1px_2px_rgba(16,24,40,0.05),0_14px_40px_rgba(91,76,245,0.14)] backdrop-blur-[22px] backdrop-saturate-[180%]">
             {wide && <Logo size={28} />}
             <TabNav pathname={pathname} />
@@ -48,7 +48,11 @@ export function AppLayout() {
           </div>
         </header>
 
-        <main className={wide ? 'px-3.5 pb-16 pt-[18px]' : 'px-3.5 pb-[100px] pt-3.5'}>
+        <main
+          className={`pl-[max(14px,env(safe-area-inset-left))] pr-[max(14px,env(safe-area-inset-right))] ${
+            wide ? 'pb-16 pt-[18px]' : 'pb-[calc(100px+env(safe-area-inset-bottom))] pt-3.5'
+          }`}
+        >
           <div
             key={pathname}
             className="mx-auto flex max-w-[1180px] animate-[page-in_.45s_cubic-bezier(.2,.9,.25,1)] flex-col gap-4 motion-reduce:animate-none"
@@ -63,7 +67,7 @@ export function AppLayout() {
             type="button"
             aria-label="Registar"
             onClick={() => openModal({ kind: 'quick' })}
-            className="brand-gradient fixed bottom-5 right-4 z-25 grid size-14 place-items-center rounded-[18px] border-0 text-white shadow-[0_8px_24px_rgba(16,24,40,0.25)] active:scale-95"
+            className="brand-gradient fixed bottom-[calc(20px+env(safe-area-inset-bottom))] right-[max(16px,env(safe-area-inset-right))] z-25 grid size-14 place-items-center rounded-[18px] border-0 text-white shadow-[0_8px_24px_rgba(16,24,40,0.25)] active:scale-95"
           >
             <Icon name="add" size={26} />
           </button>
@@ -99,11 +103,11 @@ function TabNav({ pathname }: { pathname: string }) {
     <nav
       ref={navRef}
       aria-label="Secções"
-      className="no-scrollbar relative flex h-11 min-w-0 flex-1 items-stretch gap-0.5 overflow-x-auto"
+      className="no-scrollbar relative flex min-w-0 flex-1 items-stretch gap-0.5 -mx-1.5 self-stretch overflow-x-auto px-1.5 py-[7px]"
     >
       <div
         aria-hidden
-        className="absolute inset-y-0 rounded-[14px] bg-[linear-gradient(135deg,#8B7BFF,#5B4CF5_60%,#4A6CF7)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_6px_18px_rgba(91,76,245,0.38)] transition-[left,width] duration-450 ease-[cubic-bezier(.3,1.2,.4,1)]"
+        className="absolute inset-y-[7px] rounded-[14px] bg-[linear-gradient(135deg,#8B7BFF,#5B4CF5_60%,#4A6CF7)] shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_3px_8px_rgba(91,76,245,0.35)] transition-[left,width] duration-450 ease-[cubic-bezier(.3,1.2,.4,1)]"
         style={{ left: ind.l, width: ind.w }}
       />
       {TABS.map(([to, label, icon]) => (

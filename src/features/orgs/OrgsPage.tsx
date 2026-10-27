@@ -56,7 +56,7 @@ export function OrgsPage() {
   if (autoEnter && (orgsQ.isPending || soleOrgId)) return <Spinner />;
 
   return (
-    <main className="box-border flex min-h-screen justify-center px-4 py-10">
+    <main className="box-border flex min-h-dvh justify-center px-4 py-10">
       <div className="flex w-full max-w-[540px] flex-col gap-3.5">
         <div className="flex items-center justify-between">
           <Logo size={36} />

@@ -1,15 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sheet } from '../../components/overlays/Sheet';
+import { Spinner } from '../../components/ui/Spinner';
 import { useOrgData } from '../../hooks/useOrg';
 import { useUi, type ModalState } from '../../store/uiStore';
-import { ExpenseDetail, LotDetail, SaleDetail } from './Details';
-import { ExpenseForm } from './ExpenseForm';
-import { InviteForm, NamedForm } from './SmallForms';
-import { LotForm } from './LotForm';
-import { ProductDetail } from './ProductDetail';
-import { ProductForm } from './ProductForm';
-import { QuickPicker } from './QuickPicker';
-import { SaleForm } from './SaleForm';
+import { loadedModalBody, loadModalBody } from './loadModalBody';
 
 const TITLES: Record<ModalState['kind'], string> = {
   quick: 'Registar',
@@ -26,35 +20,6 @@ const TITLES: Record<ModalState['kind'], string> = {
   productDetail: 'Produto',
 };
 
-function Body({ m }: { m: ModalState }) {
-  switch (m.kind) {
-    case 'quick':
-      return <QuickPicker />;
-    case 'sale':
-      return <SaleForm productId={m.productId} />;
-    case 'expense':
-      return <ExpenseForm />;
-    case 'lot':
-      return <LotForm productId={m.productId} editId={m.editId} />;
-    case 'product':
-      return <ProductForm />;
-    case 'type':
-      return <NamedForm kind="type" />;
-    case 'cat':
-      return <NamedForm kind="cat" />;
-    case 'invite':
-      return <InviteForm />;
-    case 'lotDetail':
-      return <LotDetail lotId={m.lotId} />;
-    case 'saleDetail':
-      return <SaleDetail saleId={m.saleId} />;
-    case 'expDetail':
-      return <ExpenseDetail expId={m.expId} />;
-    case 'productDetail':
-      return <ProductDetail productId={m.productId} />;
-  }
-}
-
 /** Renders the active modal; keeps the last one mounted while the sheet animates out. */
 export function ModalHost() {
   const modal = useUi((s) => s.modal);
@@ -62,7 +27,17 @@ export function ModalHost() {
   const close = useUi((s) => s.closeModal);
   const { derived } = useOrgData();
   const [shown, setShown] = useState<{ m: ModalState; seq: number } | null>(null);
+  const [Body, setBody] = useState(loadedModalBody);
+  const [failed, setFailed] = useState(false);
   if (modal && shown?.m !== modal) setShown({ m: modal, seq });
+
+  useEffect(() => {
+    if (Body || (failed && !modal)) return;
+    loadModalBody().then(
+      (b) => setBody(() => b),
+      () => setFailed(true),
+    );
+  }, [Body, failed, modal]);
 
   const m = modal ?? shown?.m ?? null;
   let title = m ? TITLES[m.kind] : '';
@@ -71,7 +46,7 @@ export function ModalHost() {
 
   return (
     <Sheet open={!!modal} title={title} onClose={close} wideMax={m?.kind === 'productDetail' ? 640 : 540}>
-      {m && <Body key={shown?.seq ?? seq} m={m} />}
+      {m && (Body ? <Body key={shown?.seq ?? seq} m={m} /> : <Spinner />)}
     </Sheet>
   );
 }

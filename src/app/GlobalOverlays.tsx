@@ -1,3 +1,4 @@
+import { InstallPrompt } from '../components/overlays/InstallPrompt';
 import { ConfirmDialog, FilePreview, Toast } from '../components/overlays/Overlays';
 
 export function GlobalOverlays() {
@@ -6,6 +7,7 @@ export function GlobalOverlays() {
       <FilePreview />
       <ConfirmDialog />
       <Toast />
+      <InstallPrompt />
     </>
   );
 }

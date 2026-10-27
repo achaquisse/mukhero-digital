@@ -33,7 +33,7 @@ export function SignInPage() {
   };
 
   return (
-    <main className="box-border grid min-h-screen place-items-center p-6">
+    <main className="box-border grid min-h-dvh place-items-center p-6">
       <div className="box-border flex w-full max-w-[380px] flex-col items-center gap-6 rounded-[20px] border border-[#E7E9EE] bg-white px-7 pb-7 pt-9 text-center shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
         <Logo size={52} />
         <div className="flex flex-col gap-2">

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './Icon';
 
 interface PopoverProps {
@@ -13,7 +13,21 @@ interface PopoverProps {
 export function Popover({ trigger, children, align = 'left', className = '', panelClassName = '' }: PopoverProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const id = useId();
+
+  useLayoutEffect(() => {
+    const el = panelRef.current;
+    if (!open || !el) return;
+    el.style.translate = '';
+    const r = el.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const margin = 12;
+    let dx = 0;
+    if (r.right > vw - margin) dx = vw - margin - r.right;
+    if (r.left + dx < margin) dx = margin - r.left;
+    if (dx) el.style.translate = `${dx}px 0`;
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -36,8 +50,9 @@ export function Popover({ trigger, children, align = 'left', className = '', pan
       {trigger({ open, toggle: () => setOpen((o) => !o), id })}
       {open && (
         <div
+          ref={panelRef}
           id={id}
-          className={`absolute top-[calc(100%+6px)] flex flex-col rounded-xl border border-[#E7E9EE] bg-white p-1 shadow-pop ${
+          className={`absolute top-[calc(100%+6px)] flex max-w-[calc(100vw-24px)] flex-col rounded-xl border border-[#E7E9EE] bg-white p-1 shadow-pop ${
             align === 'right' ? 'right-0' : 'left-0'
           } ${panelClassName}`}
         >

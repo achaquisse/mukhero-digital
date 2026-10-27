@@ -28,9 +28,11 @@ export function Sheet({ open, title, onClose, wideMax = 540, children }: SheetPr
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
-    const first =
-      panel?.querySelector<HTMLElement>('[data-autofocus],input:not([type=hidden]):not([type=file]),textarea') ??
-      panel?.querySelector<HTMLElement>(FOCUSABLE);
+    const touch = window.matchMedia?.('(pointer: coarse)').matches;
+    const first = touch
+      ? panel
+      : (panel?.querySelector<HTMLElement>('[data-autofocus],input:not([type=hidden]):not([type=file]),textarea') ??
+        panel?.querySelector<HTMLElement>(FOCUSABLE));
     first?.focus({ preventScroll: true });
 
     const onKey = (e: KeyboardEvent) => {
@@ -67,7 +69,7 @@ export function Sheet({ open, title, onClose, wideMax = 540, children }: SheetPr
       : 'translate(-50%,-48%) scale(0.98)'
     : open
       ? 'translate(-50%,0)'
-      : 'translate(-50%,105%)';
+      : 'translate(-50%,calc(100% + 64px))';
 
   return createPortal(
     <>
@@ -84,12 +86,14 @@ export function Sheet({ open, title, onClose, wideMax = 540, children }: SheetPr
         aria-labelledby={titleId}
         aria-hidden={!open}
         inert={!open}
-        className="fixed left-1/2 z-31 box-border flex max-h-[92vh] w-full flex-col gap-4 overflow-y-auto border border-[#E7E9EE] bg-white px-5 pb-[22px] pt-[18px] shadow-[0_24px_60px_rgba(16,24,40,0.2)]"
+        tabIndex={-1}
+        className="fixed left-1/2 z-31 box-border flex max-h-[92dvh] w-full flex-col gap-4 overflow-y-auto overscroll-contain border border-[#E7E9EE] bg-white px-5 pt-[18px] outline-none shadow-[0_24px_60px_rgba(16,24,40,0.2)]"
         style={{
           top: wide ? '50%' : 'auto',
           bottom: wide ? 'auto' : 0,
           maxWidth: wide ? wideMax : 640,
           borderRadius: wide ? 16 : '16px 16px 0 0',
+          paddingBottom: wide ? 22 : 'calc(22px + env(safe-area-inset-bottom))',
           transform,
           opacity: wide ? (open ? 1 : 0) : 1,
           pointerEvents: open ? 'auto' : 'none',

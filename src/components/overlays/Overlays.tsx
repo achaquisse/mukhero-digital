@@ -83,7 +83,7 @@ export function Toast() {
     <div
       role="status"
       aria-live="polite"
-      className="brand-gradient pointer-events-none fixed left-1/2 top-4 z-60 flex max-w-[calc(100vw-32px)] items-center gap-2 rounded-[10px] px-4 py-2.5 text-sm text-white shadow-[0_8px_24px_rgba(16,24,40,0.2)]"
+      className="brand-gradient pointer-events-none fixed left-1/2 top-[max(16px,env(safe-area-inset-top))] z-60 flex max-w-[calc(100vw-32px)] items-center gap-2 rounded-[10px] px-4 py-2.5 text-sm text-white shadow-[0_8px_24px_rgba(16,24,40,0.2)]"
       style={{
         transform: `translate(-50%,${t ? '0' : '-20px'})`,
         opacity: t ? 1 : 0,
@@ -142,7 +142,7 @@ export function FilePreview() {
         role="dialog"
         aria-modal="true"
         aria-label={`Pré-visualização de ${file.name}`}
-        className="fixed left-1/2 top-1/2 z-51 flex h-[min(86vh,760px)] w-[min(900px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_30px_80px_rgba(16,24,40,0.35)]"
+        className="fixed left-1/2 top-1/2 z-51 flex h-[min(86dvh,760px)] w-[min(900px,calc(100vw-24px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_30px_80px_rgba(16,24,40,0.35)]"
       >
         <div className="flex items-center gap-3 px-3.5 py-3">
           <span className="grid size-[34px] shrink-0 place-items-center rounded-[9px] bg-brand-soft text-brand">

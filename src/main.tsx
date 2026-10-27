@@ -5,6 +5,7 @@ import type { Api } from './api/types';
 import { AppProviders } from './app/AppProviders';
 import { routes } from './app/routes';
 import { env } from './lib/env';
+import { setupPwa } from './lib/pwa';
 import './index.css';
 
 /** VITE_API=memory runs the app offline against in-memory data. */
@@ -17,6 +18,7 @@ async function loadApi(): Promise<Api> {
 }
 
 const router = createBrowserRouter(routes);
+setupPwa(router);
 
 loadApi().then((api) =>
   createRoot(document.getElementById('root')!).render(

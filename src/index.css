@@ -45,6 +45,8 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     margin: 0;
@@ -56,6 +58,14 @@
       radial-gradient(1200px 420px at 15% -10%, #e9e5ff 0, rgba(233, 229, 255, 0) 70%),
       radial-gradient(900px 380px at 95% -5%, #ddf4ff 0, rgba(221, 244, 255, 0) 65%), #f6f7fb;
     min-height: 100vh;
+    min-height: 100dvh;
+  }
+  @media (pointer: coarse) {
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='file'], [type='color']),
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
   input,
   button,

@@ -14,7 +14,7 @@ export const RANGE_PRESETS: ReadonlyArray<readonly [RangePreset, string]> = [
   ['custom', 'Personalizado'],
 ];
 
-export const DEFAULT_PRESET: RangePreset = '12m';
+export const DEFAULT_PRESET: RangePreset = 'mes';
 
 export interface RangeState {
   preset: RangePreset;
