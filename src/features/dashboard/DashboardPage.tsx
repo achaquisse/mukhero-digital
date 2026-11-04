@@ -138,15 +138,6 @@ export function DashboardPage() {
         />
         <StatCard
           large
-          icon="trending_up"
-          tint={1}
-          label="Lucro bruto"
-          value={fmt(gp * e)}
-          unit={cur}
-          sub={`margem ${pctRound(gp, a.rev)}%`}
-        />
-        <StatCard
-          large
           icon="receipt_long"
           tint={2}
           label="Despesas"
@@ -163,6 +154,26 @@ export function DashboardPage() {
           unit={cur}
           color={net >= 0 ? COLORS.green : COLORS.red}
           sub="após mercadoria e despesas"
+        />
+        <StatCard
+          large
+          icon="account_balance"
+          tint={0}
+          label="Caixa actual"
+          value={sfmt(a.cash.current * e)}
+          unit={cur}
+          color={a.cash.current >= 0 ? COLORS.green : COLORS.red}
+          sub="vendas − despesas − lotes"
+        />
+        <StatCard
+          large
+          icon="swap_vert"
+          tint={2}
+          label="Fluxo líquido do período"
+          value={sfmt((a.cash.inflow - a.cash.outflow) * e)}
+          unit={cur}
+          color={a.cash.inflow >= a.cash.outflow ? COLORS.green : COLORS.red}
+          sub={`Período anterior: ${sfmt(a.cash.previousNet)} ${cur} · variação ${sfmt(a.cash.inflow - a.cash.outflow - a.cash.previousNet)} ${cur}`}
         />
       </StatGrid>
 

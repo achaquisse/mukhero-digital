@@ -27,6 +27,24 @@ describe('routing & auth', () => {
   });
 });
 
+describe('cash flow', () => {
+  it('shows current cash and comparative flow on the dashboard', async () => {
+    renderApp('/painel');
+    expect(await screen.findByText('Caixa actual')).toBeInTheDocument();
+    expect(screen.queryByText('Caixa no fim do período')).not.toBeInTheDocument();
+    expect(screen.getByText('Fluxo líquido do período')).toBeInTheDocument();
+    expect(screen.getByText(/Período anterior:/)).toBeInTheDocument();
+  });
+
+  it('shows inflows, outflows and the running balance in reports', async () => {
+    renderApp('/relatorios');
+    expect(await screen.findByRole('heading', { name: 'Fluxo de caixa' })).toBeInTheDocument();
+    expect(screen.getByText(/Saldo actual:/)).toBeInTheDocument();
+    expect(screen.getByText(/Saldo no fim do período:/)).toBeInTheDocument();
+    expect(screen.getByText(/No período:/)).toBeInTheDocument();
+  });
+});
+
 describe('sales', () => {
   it('blocks overselling and records a valid FIFO sale', async () => {
     const { user, db } = renderApp('/vendas');

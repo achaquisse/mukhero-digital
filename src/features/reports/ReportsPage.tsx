@@ -308,6 +308,7 @@ export function ReportsPage() {
       </section>
 
       <MonthlyChart e={e} />
+      <CashFlowChart e={e} />
 
       <DataTable
         title="Resultados por mês"
@@ -449,6 +450,133 @@ function MonthlyChart({ e }: { e: number }) {
               style={{ color: i === idx ? COLORS.ink : COLORS.muted }}
             >
               {i % step === 0 ? monthShort(x.k) + (x.k.slice(5) === '01' || i === 0 ? ` ${x.k.slice(2, 4)}` : '') : ''}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CashFlowChart({ e }: { e: number }) {
+  const { db, analytics: a } = useOrgData();
+  const [sel, setSel] = useState<number | null>(null);
+  const { cash } = a;
+  const B = a.buckets;
+  const idx = sel != null && sel < B.length ? sel : B.length - 1;
+  const selected = cash.buckets[idx];
+  const label = B[idx]?.full ?? '';
+  const min = Math.min(0, cash.opening, ...cash.buckets.map((b) => b.balance));
+  const max = Math.max(1, cash.opening, ...cash.buckets.map((b) => Math.max(b.balance, b.inflow, b.outflow)));
+  const span = max - min;
+  const zero = (-min / span) * 100;
+  const points = cash.buckets
+    .map((b, i) => `${((i + 0.5) / B.length) * 100},${100 - ((b.balance - min) / span) * 100}`)
+    .join(' ');
+  const step = Math.ceil(B.length / 12);
+  const gap = B.length > 18 ? 3 : 8;
+  const cur = db.settings.currency;
+
+  return (
+    <section className="card flex flex-col gap-4 p-[18px]" aria-labelledby="cash-title">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-2">
+          <h2 id="cash-title" className="m-0 text-[15px] font-semibold">
+            Fluxo de caixa
+          </h2>
+          <div className="text-xs text-muted">
+            Vendas registadas − despesas − custos dos lotes na data de encomenda · saldo inicial 0 · sem filtros de produto ou
+            categoria
+          </div>
+          <div className="flex flex-wrap gap-3.5 text-xs text-muted">
+            {[
+              [COLORS.brand, 'Entradas'],
+              [COLORS.red, 'Saídas'],
+              [COLORS.green, 'Saldo acumulado'],
+            ].map(([color, name]) => (
+              <div key={name} className="flex items-center gap-1.5">
+                <span aria-hidden className="size-2 rounded-[2px]" style={{ background: color }} />
+                {name}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 text-right text-[13px]" aria-live="polite">
+          <div className="font-semibold">
+            Saldo actual:{' '}
+            <span style={{ color: cash.current >= 0 ? COLORS.green : COLORS.red }}>
+              {sfmt(cash.current)} {cur}
+            </span>
+          </div>
+          <div className="text-xs text-muted">
+            Saldo no fim do período: {sfmt(cash.closing)} {cur}
+          </div>
+          <div className="text-xs text-muted">
+            No período: +{fmt(cash.inflow)} / −{fmt(cash.outflow)} {cur}
+          </div>
+          <div className="mt-1 text-xs text-muted">{label}</div>
+          <div>
+            Entradas {fmt(selected?.inflow ?? 0)} · Saídas {fmt(selected?.outflow ?? 0)} · Saldo{' '}
+            <span className="font-semibold">
+              {sfmt(selected?.balance ?? cash.opening)} {cur}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <div className="relative h-[210px]">
+          <div aria-hidden className="absolute inset-x-0 h-px bg-[#D5DAE1]" style={{ bottom: `${zero}%` }} />
+          <div className="absolute inset-0 flex" style={{ gap }}>
+            {cash.buckets.map((b, i) => (
+              <button
+                key={b.key}
+                type="button"
+                aria-label={`${B[i]?.full}: entradas ${fmt(b.inflow)} ${cur}, saídas ${fmt(b.outflow)} ${cur}, saldo ${sfmt(b.balance)} ${cur}`}
+                aria-pressed={i === idx}
+                onMouseEnter={() => setSel(i)}
+                onFocus={() => setSel(i)}
+                onClick={() => setSel(i)}
+                className="relative min-w-0 flex-1 rounded-md border-0 p-0"
+                style={{ background: i === idx ? '#F5F6F8' : 'transparent' }}
+              >
+                <span
+                  className="absolute left-[12%] w-[32%] rounded-t-[3px] bg-[#5B4CF5] transition-[height] duration-400"
+                  style={{ bottom: `${zero}%`, height: `${(b.inflow / span) * 100 * e}%` }}
+                />
+                <span
+                  className="absolute left-[56%] w-[32%] rounded-t-[3px] bg-[#F04438] transition-[height] duration-400"
+                  style={{ bottom: `${zero}%`, height: `${(b.outflow / span) * 100 * e}%` }}
+                />
+              </button>
+            ))}
+          </div>
+          {cash.buckets.length > 0 && (
+            <svg
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 size-full overflow-visible"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <polyline points={points} fill="none" stroke={COLORS.green} strokeWidth="0.6" vectorEffect="non-scaling-stroke" />
+              {selected && (
+                <circle
+                  cx={((idx + 0.5) / B.length) * 100}
+                  cy={100 - ((selected.balance - min) / span) * 100}
+                  r="1"
+                  fill={COLORS.green}
+                />
+              )}
+            </svg>
+          )}
+        </div>
+        <div aria-hidden className="flex" style={{ gap }}>
+          {B.map((b, i) => (
+            <div
+              key={b.key}
+              className="min-w-0 flex-1 whitespace-nowrap text-center text-[10px]"
+              style={{ color: i === idx ? COLORS.ink : COLORS.muted }}
+            >
+              {i % step === 0 ? b.label : ''}
             </div>
           ))}
         </div>

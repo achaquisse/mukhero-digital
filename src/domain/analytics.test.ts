@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { makeDb, sale, TODAY } from '../test/fixtures';
-import { ALL, buildBuckets, computeAnalytics, resolveRange, type Filters } from './analytics';
+import { lot, makeDb, sale, TODAY } from '../test/fixtures';
+import { ALL, buildBuckets, computeAnalytics, computeCashFlow, resolveRange, type Filters } from './analytics';
 import { deriveOrg } from './derive';
 
 const range = (preset: Filters['range']['preset'], from = '', to = '') => ({ preset, from, to });
@@ -14,6 +14,14 @@ describe('resolveRange', () => {
     ['tudo', '2024-02-11'],
   ] as const)('%s starts at %s', (preset, from) => {
     expect(resolveRange(range(preset), '2024-02-11', TODAY)).toEqual({ from, to: TODAY });
+  });
+
+  it.each([
+    ['2026-11-04', '2026-10-01', '2026-10-31'],
+    ['2026-01-15', '2025-12-01', '2025-12-31'],
+    ['2024-03-15', '2024-02-01', '2024-02-29'],
+  ])('covers the entire previous month for %s', (today, from, to) => {
+    expect(resolveRange(range('mes_passado'), '2024-01-01', today)).toEqual({ from, to });
   });
 
   it('swaps an inverted custom range', () => {
@@ -43,6 +51,44 @@ describe('buildBuckets', () => {
     expect(buckets[0]!.label).toBe('Nov 25');
     expect(buckets[2]!.label).toBe('Jan 26');
     expect(buckets[3]!.label).toBe('Fev');
+  });
+});
+
+describe('computeCashFlow', () => {
+  const db = makeDb({
+    lots: [lot({ id: 'A', productId: 'p1', orderDate: '2026-09-02', costs: [{ label: 'Fornecedor', value: 60 }] })],
+    sales: [
+      sale({ id: 's1', productId: 'p1', date: '2026-09-10', price: 100 }),
+      sale({ id: 's2', productId: 'p1', date: '2026-10-03', price: 80 }),
+      sale({ id: 's3', productId: 'p1', date: '2026-10-23', price: 300 }),
+    ],
+    expenses: [
+      { id: 'e1', date: '2026-10-04', amount: 20, catId: 'c1', note: '' },
+      { id: 'e2', date: '2026-10-24', amount: 10, catId: 'c1', note: '' },
+    ],
+  });
+  const d = deriveOrg(db, TODAY);
+
+  it('tracks cash balances and compares equivalent preceding periods without counting future movements', () => {
+    const cash = computeCashFlow(db, d, '2026-10-01', '2026-10-22', TODAY);
+    expect(cash).toMatchObject({
+      opening: 40,
+      inflow: 80,
+      outflow: 20,
+      closing: 100,
+      current: 100,
+      previousOpening: -60,
+      previousClosing: 40,
+      previousNet: 100,
+    });
+    expect(cash.buckets.find((b) => b.key === '2026-10-03')).toMatchObject({ inflow: 80, outflow: 0, balance: 120 });
+    expect(cash.buckets.find((b) => b.key === '2026-10-04')).toMatchObject({ inflow: 0, outflow: 20, balance: 100 });
+  });
+
+  it('keeps the actual balance separate from the selected period and ignores product filters', () => {
+    const a = computeAnalytics(db, d, { range: range('mes_passado'), productId: 'p2', typeId: ALL, catId: ALL }, TODAY);
+    expect(a.cash).toMatchObject({ opening: 0, inflow: 100, outflow: 60, closing: 40, current: 100 });
+    expect(a.cash.buckets.at(-1)?.balance).toBe(40);
   });
 });
 

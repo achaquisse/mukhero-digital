@@ -3,11 +3,12 @@ import { sum } from './derive';
 import { addDays, addMonths, dayLabel, dayLabelYear, monthFull, monthShort } from './format';
 import type { Expense, OrgData, Sale } from './types';
 
-export type RangePreset = '12m' | 'mes' | '3m' | 'ano' | 'tudo' | 'custom';
+export type RangePreset = '12m' | 'mes' | 'mes_passado' | '3m' | 'ano' | 'tudo' | 'custom';
 
 export const RANGE_PRESETS: ReadonlyArray<readonly [RangePreset, string]> = [
   ['12m', 'Últimos 12 meses'],
   ['mes', 'Este mês'],
+  ['mes_passado', 'Mês Passado'],
   ['3m', 'Últimos 3 meses'],
   ['ano', 'Este ano'],
   ['tudo', 'Todo o período'],
@@ -38,6 +39,10 @@ export function resolveRange(r: RangeState, firstDate: string, today: string): {
   switch (r.preset) {
     case 'mes':
       from = `${month}-01`;
+      break;
+    case 'mes_passado':
+      from = `${addMonths(month, -1)}-01`;
+      to = addDays(`${month}-01`, -1);
       break;
     case '3m':
       from = `${addMonths(month, -2)}-01`;
@@ -112,7 +117,76 @@ export interface MonthTotals {
   exp: number;
 }
 
+export interface CashBucket {
+  key: string;
+  inflow: number;
+  outflow: number;
+  balance: number;
+}
+
+export interface CashFlow {
+  buckets: CashBucket[];
+  opening: number;
+  inflow: number;
+  outflow: number;
+  closing: number;
+  current: number;
+  previousOpening: number;
+  previousClosing: number;
+  previousNet: number;
+}
+
+export function computeCashFlow(db: OrgData, d: Derived, from: string, to: string, today: string): CashFlow {
+  const movements = [
+    ...db.sales.map((s) => ({ date: s.date, inflow: s.qty * s.price, outflow: 0 })),
+    ...db.expenses.map((x) => ({ date: x.date, inflow: 0, outflow: x.amount })),
+    ...d.lots.map((l) => ({ date: l.orderDate, inflow: 0, outflow: l.cost })),
+  ].filter((m) => m.date <= today);
+  const balanceAt = (date: string) =>
+    sum(
+      movements.filter((m) => m.date <= date),
+      (m) => m.inflow - m.outflow,
+    );
+  const previousTo = addDays(from, -1);
+  const span = (Date.parse(to) - Date.parse(from)) / 864e5 + 1;
+  const previousFrom = addDays(from, -span);
+  const opening = balanceAt(previousTo);
+  const previousOpening = balanceAt(addDays(previousFrom, -1));
+  const previousClosing = balanceAt(previousTo);
+  const { buckets, bucketOf } = buildBuckets(from, to);
+  const totals: Record<string, CashBucket> = {};
+  for (const b of buckets) totals[b.key] = { key: b.key, inflow: 0, outflow: 0, balance: 0 };
+  for (const m of movements) {
+    if (m.date < from || m.date > to) continue;
+    const bucket = totals[bucketOf(m.date)];
+    if (!bucket) continue;
+    bucket.inflow += m.inflow;
+    bucket.outflow += m.outflow;
+  }
+  let balance = opening;
+  const series = buckets.map((b) => {
+    const bucket = totals[b.key]!;
+    balance += bucket.inflow - bucket.outflow;
+    bucket.balance = balance;
+    return bucket;
+  });
+  const inflow = sum(series, (b) => b.inflow);
+  const outflow = sum(series, (b) => b.outflow);
+  return {
+    buckets: series,
+    opening,
+    inflow,
+    outflow,
+    closing: opening + inflow - outflow,
+    current: balanceAt(today),
+    previousOpening,
+    previousClosing,
+    previousNet: previousClosing - previousOpening,
+  };
+}
+
 export interface Analytics {
+  cash: CashFlow;
   from: string;
   to: string;
   sales: Sale[];
@@ -131,7 +205,11 @@ export interface Analytics {
 }
 
 export function computeAnalytics(db: OrgData, d: Derived, f: Filters, today: string): Analytics {
-  const allDates = [...db.sales.map((s) => s.date), ...db.expenses.map((x) => x.date)].toSorted();
+  const allDates = [
+    ...db.sales.map((s) => s.date),
+    ...db.expenses.map((x) => x.date),
+    ...db.lots.map((l) => l.orderDate),
+  ].toSorted();
   const { from, to } = resolveRange(f.range, allDates[0] ?? today, today);
   const inRange = (date: string | null | undefined) => !!date && date >= from && date <= to;
   const productMatches = (pid: string) => {
@@ -170,6 +248,7 @@ export function computeAnalytics(db: OrgData, d: Derived, f: Filters, today: str
   for (const x of expenses) M(x.date.slice(0, 7)).exp += x.amount;
 
   return {
+    cash: computeCashFlow(db, d, from, to, today),
     from,
     to,
     sales,
