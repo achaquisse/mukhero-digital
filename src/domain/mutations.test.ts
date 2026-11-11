@@ -52,6 +52,17 @@ describe('recordSale', () => {
     expect(next.sales).toEqual([expect.objectContaining({ productId: 'p2', lotId: null, qty: 3, price: 30 })]);
   });
 
+  it('applies a custom unit price to this sale only', () => {
+    const db = makeDb();
+    const next = unwrap(M.recordSale(db, deriveOrg(db, TODAY), input({ qty: 7, price: 85 }), actor));
+    expect(next.sales.map((s) => s.price)).toEqual([85, 85]);
+    expect(next.products[0]!.priceHistory.map((h) => h.price)).toEqual([100]);
+    expect(M.recordSale(db, deriveOrg(db, TODAY), input({ price: 0 }), actor)).toEqual({
+      ok: false,
+      error: 'Preço unitário inválido',
+    });
+  });
+
   it('voiding a sale returns units to stock and reopens the lot', () => {
     const db = makeDb();
     const sold = unwrap(M.recordSale(db, deriveOrg(db, TODAY), input({ qty: 5 }), actor));

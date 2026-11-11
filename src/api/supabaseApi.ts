@@ -187,6 +187,7 @@ export const supabaseApi: Api = {
         p_qty: s.qty,
         p_customer: s.customer,
         p_date: s.date,
+        p_price: s.price,
       }),
     );
   },

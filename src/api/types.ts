@@ -8,6 +8,8 @@ export interface SaleRequest {
   qty: number;
   customer: string;
   date: string;
+  /** Unit price for this sale only; omitted → the product's current price. */
+  price?: number;
 }
 
 /**

@@ -71,6 +71,36 @@ describe('sales', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/Venda de 3 000 MT registada/);
   });
 
+  it('records a sale at a custom unit price without changing the product price', async () => {
+    const { user, db } = renderApp('/vendas');
+    await user.click(await screen.findByRole('button', { name: 'Nova venda' }));
+    const form = within(dialog());
+    const listPrice = db()
+      .products.find((p) => p.id === 'p1')!
+      .priceHistory.at(-1)!.price;
+    const price = form.getByRole('textbox', { name: /Preço unitário/ });
+    expect(price).toHaveValue(String(listPrice));
+
+    await user.clear(price);
+    await user.type(price, '1200');
+    expect(form.getByRole('button', { name: 'Repor' })).toBeInTheDocument();
+    const before = db().sales.length;
+    await user.click(form.getByRole('button', { name: 'Registar venda' }));
+
+    await waitFor(() => expect(useUi.getState().modal).toBeNull());
+    expect(
+      db()
+        .sales.slice(before)
+        .map((s) => s.price),
+    ).toEqual([1200]);
+    expect(
+      db()
+        .products.find((p) => p.id === 'p1')!
+        .priceHistory.at(-1)!.price,
+    ).toBe(listPrice);
+    expect(screen.getByRole('status')).toHaveTextContent(/Venda de 1 200 MT registada/);
+  });
+
   it('voids a sale after confirmation', async () => {
     const { user, db } = renderApp('/vendas');
     const first = db().sales.toSorted((a, b) => b.date.localeCompare(a.date))[0]!;

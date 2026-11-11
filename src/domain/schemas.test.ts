@@ -20,7 +20,7 @@ describe('sale schema', () => {
     available: (pid) => (pid === 'svc' ? null : pid === 'p1' ? 3 : 0),
     priceOf: (pid) => (pid === 'free' ? 0 : 100),
   });
-  const base = { productId: 'p1', qty: 1, customer: '', date: TODAY, files: [] };
+  const base = { productId: 'p1', qty: 1, price: '100', customer: '', date: TODAY, files: [] };
 
   it('accepts a valid sale', () => {
     expect(schema.safeParse(base).success).toBe(true);
@@ -40,6 +40,13 @@ describe('sale schema', () => {
       productId: 'Defina um preço de venda para este produto',
     });
     expect(messages(schema.safeParse({ ...base, productId: '' }))).toMatchObject({ productId: 'Escolha um produto' });
+  });
+
+  it('parses a custom unit price and requires it to be positive', () => {
+    expect(schema.parse({ ...base, price: '87,5' }).price).toBe(87.5);
+    expect(messages(schema.safeParse({ ...base, price: '' }))).toEqual({ price: 'Indique o preço unitário' });
+    expect(messages(schema.safeParse({ ...base, price: '0' }))).toEqual({ price: 'Tem de ser maior que zero' });
+    expect(messages(schema.safeParse({ ...base, price: 'abc' }))).toEqual({ price: 'Indique um número válido' });
   });
 });
 

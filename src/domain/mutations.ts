@@ -47,13 +47,16 @@ export interface SaleInput {
   customer: string;
   date: string;
   files: Attachment[];
+  /** Unit price for this sale only; falls back to the product's current price. */
+  price?: number;
 }
 
 export function recordSale(db: OrgData, d: Derived, input: SaleInput, actor: Actor): Result {
   const p = db.products.find((x) => x.id === input.productId);
   if (!p) return fail('Produto não encontrado');
-  const price = currentPrice(p);
-  if (!price) return fail('O produto não tem preço de venda');
+  if (!currentPrice(p)) return fail('O produto não tem preço de venda');
+  const price = input.price ?? currentPrice(p);
+  if (!(price > 0)) return fail('Preço unitário inválido');
   if (!(input.qty > 0)) return fail('Quantidade inválida');
 
   const base = {

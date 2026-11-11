@@ -69,6 +69,8 @@ export const makeSaleSchema = (ctx: SaleContext) =>
     .object({
       productId: z.string().min(1, 'Escolha um produto'),
       qty: z.number({ error: 'Indique a quantidade' }).int('Use um número inteiro').min(1, 'Mínimo 1 unidade'),
+      /** Unit price applied to this sale; defaults to the product's current price in the form. */
+      price: numberField({ positive: true, required: 'Indique o preço unitário', max: 1e10 }),
       customer: optionalText(120),
       date: pastDate(ctx.today),
       files: draftFiles,

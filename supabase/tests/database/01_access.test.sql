@@ -1,7 +1,7 @@
 -- RLS and business rules. Run with: npm run db:test
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(39);
+select plan(42);
 
 -- ── Fixtures ────────────────────────────────────────────────────────────
 -- Users: admin, vendas, stock, leitura (all in org A), outsider (no org).
@@ -102,6 +102,14 @@ select is(
 select lives_ok(
   $$ select public.record_sale((select v from ctx where k = 'org'), (select v from ctx where k = 'service'), 50, '', current_date) $$,
   'services sell without stock');
+select throws_ok(
+  $$ select public.record_sale((select v from ctx where k = 'org'), (select v from ctx where k = 'service'), 1, '', current_date, 0) $$,
+  '22023', 'Preço unitário inválido', 'custom price must be positive');
+insert into ctx values ('custom', public.record_sale((select v from ctx where k = 'org'), (select v from ctx where k = 'product'), 1, '', current_date, 1250));
+select is((select price from public.sales where id = (select v from ctx where k = 'custom')), 1250.00::numeric, 'sale stored at the custom price');
+select is(
+  (select price from public.price_history where product_id = (select v from ctx where k = 'product') order by effective_at desc, id desc limit 1),
+  1500.00::numeric, 'custom sale price leaves the product price unchanged');
 
 -- RLS denials on delete affect zero rows rather than raising.
 delete from public.sales where id = (select v from ctx where k = 'sale');

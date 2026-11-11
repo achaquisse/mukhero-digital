@@ -6,7 +6,7 @@ import { TextField, FieldError } from '../../components/ui/Field';
 import { Icon } from '../../components/ui/Icon';
 import { COLORS } from '../../domain/constants';
 import { estimateSaleCost } from '../../domain/derive';
-import { dayLabelYear, fmt, sfmt, todayISO } from '../../domain/format';
+import { fmt, sfmt, todayISO } from '../../domain/format';
 import { makeSaleSchema } from '../../domain/schemas';
 import { useAction, useOrgData } from '../../hooks/useOrg';
 import { uid } from '../../domain/id';
@@ -32,18 +32,25 @@ export function SaleForm({ productId }: { productId?: string }) {
     [derived, today],
   );
   const firstGood = derived.products.find((p) => !p.service) ?? derived.products[0];
+  const initialPid = productId ?? firstGood?.id ?? '';
+  const priceText = (id: string) => {
+    const pr = derived.productById[id]?.price;
+    return pr ? String(pr) : '';
+  };
   const { register, control, handleSubmit, setValue, getValues, formState } = useZodForm(schema, {
-    defaultValues: { productId: productId ?? firstGood?.id ?? '', qty: 1, customer: '', date: today, files: [] },
+    defaultValues: { productId: initialPid, qty: 1, price: priceText(initialPid), customer: '', date: today, files: [] },
   });
   const errors = formState.errors;
-  const [pid, qty, files] = useWatch({ control, name: ['productId', 'qty', 'files'] });
+  const [pid, qty, priceInput, files] = useWatch({ control, name: ['productId', 'qty', 'price', 'files'] });
   const p = derived.productById[pid];
   const av = p && !p.service ? derived.avail(p.id) : null;
   const q = Number.isFinite(qty) ? qty : 0;
-  const price = p?.price ?? 0;
+  const listPrice = p?.price ?? 0;
+  const parsedPrice = Number(priceInput.trim().replace(',', '.'));
+  const price = priceInput.trim() && Number.isFinite(parsedPrice) ? parsedPrice : 0;
+  const overridden = !!listPrice && price !== listPrice;
   const total = q * price;
   const gp = p ? total - estimateSaleCost(p, av, q) : 0;
-  const last = p?.ph[p.ph.length - 1];
   const picker = useFilePicker((add) => setValue('files', [...getValues('files'), ...add.map((file) => ({ id: uid(), file }))]));
 
   const onSubmit = handleSubmit(async (v) => {
@@ -53,7 +60,7 @@ export function SaleForm({ productId }: { productId?: string }) {
         if (v.files.length) await uploadAfterSave(api, org.id, { kind: 'sale', id }, v.files);
         return id;
       },
-      `Venda de ${fmt(v.qty * price)} ${cur} registada`,
+      `Venda de ${fmt(v.qty * v.price)} ${cur} registada`,
     );
     if (r.ok) close();
   });
@@ -76,6 +83,7 @@ export function SaleForm({ productId }: { productId?: string }) {
             onChange={(id) => {
               field.onChange(id);
               setValue('qty', 1, { shouldValidate: formState.isSubmitted });
+              setValue('price', priceText(id), { shouldValidate: formState.isSubmitted });
             }}
             error={errors.productId?.message}
             hint={avail}
@@ -114,19 +122,30 @@ export function SaleForm({ productId }: { productId?: string }) {
             </button>
           </div>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[13px] font-medium text-muted">Preço unitário ({cur})</span>
-          <div
-            className="flex h-11 items-center gap-2 rounded-[10px] border border-[#ECEBF5] bg-surface px-3"
-            aria-label={`Preço unitário ${fmt(price)} ${cur}, definido no produto`}
-          >
-            <span className="flex-1 text-[15px] font-semibold text-ink">{fmt(price)}</span>
-            {last?.from && (
-              <span className="whitespace-nowrap text-[11px] text-muted">desde {dayLabelYear(last.from.slice(0, 10))}</span>
-            )}
-            <Icon name="lock" size={16} className="text-subtle" />
-          </div>
-        </div>
+        <TextField
+          label={`Preço unitário (${cur})`}
+          inputMode="decimal"
+          autoComplete="off"
+          {...register('price')}
+          error={errors.price?.message}
+          className="font-semibold"
+          hint={
+            overridden ? (
+              <span className="flex flex-wrap items-center gap-x-1.5">
+                <span>
+                  Preço do produto: {fmt(listPrice)} ({sfmt(price - listPrice)})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setValue('price', String(listPrice), { shouldValidate: true })}
+                  className="border-0 bg-transparent p-0 text-xs font-medium text-brand underline"
+                >
+                  Repor
+                </button>
+              </span>
+            ) : undefined
+          }
+        />
       </div>
       <FieldError message={errors.qty?.message} />
 

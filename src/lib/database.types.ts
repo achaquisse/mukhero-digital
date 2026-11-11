@@ -725,7 +725,7 @@ export type Database = {
         }[];
       };
       record_sale: {
-        Args: { p_customer: string; p_date: string; p_org: string; p_product: string; p_qty: number };
+        Args: { p_customer: string; p_date: string; p_org: string; p_price?: number; p_product: string; p_qty: number };
         Returns: string;
       };
       request_join: { Args: { p_code: string }; Returns: string };
